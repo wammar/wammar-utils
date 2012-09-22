@@ -20,6 +20,8 @@ for line in textCorpus:
       vocab[token] = nextId
       vocabFile.write(u'{0} {1}\n'.format(nextId, token))
       nextId += 1
+      if nextId % 1000000 == 0:
+        print 'nextId={0}'.format(nextId)
     temp.append(str(vocab[token]))
   intCorpus.write(u'{0}\n'.format(' '.join(temp)))
                   
