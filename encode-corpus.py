@@ -12,6 +12,7 @@ intCorpus = io.open(sys.argv[3], encoding='utf8', mode='w')
 
 nextId = 2
 vocab = defaultdict(int)
+linesCounter = 0
 for line in textCorpus:
   temp = []
   tokens = line.strip().split()
@@ -20,10 +21,13 @@ for line in textCorpus:
       vocab[token] = nextId
       vocabFile.write(u'{0} {1}\n'.format(nextId, token))
       nextId += 1
-      if nextId % 1000000 == 0:
-        print 'nextId={0}'.format(nextId)
     temp.append(str(vocab[token]))
   intCorpus.write(u'{0}\n'.format(' '.join(temp)))
+  # for logging only
+  linesCounter += 1
+  if linesCounter % 1000 == 0:
+    print 'nextId={0}'.format(nextId)
+    print 'linesCounter={0}'.format(linesCounter)
                   
 vocabFile.close()
 textCorpus.close()
