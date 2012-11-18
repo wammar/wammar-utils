@@ -10,11 +10,18 @@ from collections import defaultdict
 textCorpus = io.open(sys.argv[1], encoding='utf8', mode='r')
 vocabFilename = sys.argv[2]
 intCorpus = io.open(sys.argv[3], encoding='utf8', mode='w')
+if len(sys.argv) > 4:
+  vocabStatus = sys.argv[4] # to indicate the vocab file is ready, pass 'ready' here
+else:
+  vocabStatus = 'not ready'
 
 # figures whether the vocabulary is ready
 vocabReady = False
-if os.path.exists(vocabFilename):
+if vocabStatus == 'ready':
+  print 'reusing the vocab file'
   vocabReady = True
+else:
+  print 'creating the vocab file'
 if vocabReady:
   vocabFile = io.open(vocabFilename, encoding='utf8', mode='r')
 else:
