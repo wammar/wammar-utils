@@ -19,11 +19,11 @@ class Trie:
 
   # in case you don't want any sequence to have certain IDs
   # e.g. you want to reserve the index 0 for a special kind of sequence
-  def SetRoot(rootId):
+  def SetRoot(self, rootId):
     self.rootId = rootId
     assert(self.rootId >= 0)
     while len(self.nodes) <= self.rootId:
-      self.nodes.push_back({self.end:('EMPTY_SEQUENCE', self.rootId)})
+      self.nodes.append({self.end:('EMPTY_SEQUENCE', self.rootId)})
     self.nextId = self.rootId + 1
 
   # the normal scenario doesn't specify the optionalId
@@ -31,28 +31,38 @@ class Trie:
   # a specific ID for some sequences (e.g. you constructed
   # a trie using data set X, and saved the IDs to file, and
   # now you want to apply the same IDs to another data set Y)
-  def Index(sequence, optionalId = -1):
+  def Index(self, sequence, optionalId = -1):
     assert(optionalId >= -1)
-    currentId = self.rootId
+    self.currentId = self.rootId
     for element in sequence:
-      if element not in self.nodes[currentId].keys():
-        self.nodes[currentId][element] = self.nextId
-        self.nodes.push_back({})
+      if element not in self.nodes[self.currentId].keys():
+        self.nodes[self.currentId][element] = self.nextId
+        self.nodes.append({})
         self.nextId = len(self.nodes)
-      currentId = self.nodes[currentId][element]
-    if optionalId == -1:
-      self.nodes[currentId][self.end] = (sequence, self.currentId)
-      return self.currentId
-    else:
-      self.nodes[currentId][self.end] = (sequence, optionalId)
-      return optionalId
+      self.currentId = self.nodes[self.currentId][element]
+    # if an optional id is specified, override any existing ID
+    if optionalId != -1:
+      self.nodes[self.currentId][self.end] = (sequence, optionalId)
+    # else, check whether an ID already exists. if one exists, do nothing. if no ID exist, then set self.currentId
+    elif self.end not in self.nodes[self.currentId].keys():
+      self.nodes[self.currentId][self.end] = (sequence, self.currentId)
 
-  def GetAllSequenceIds():
+    # now, we are confident this will return the sequence's ID
+    return self.nodes[self.currentId][self.end][1]
+
+  def GetAllSequenceIds(self):
     all = []
     for nodeId in range(self.rootId + 1, len(self.nodes)):
       if self.end in self.nodes[nodeId].keys():
-        all.push_back( (nodeId, self.nodes[nodeId][self.end]) )
+        all.append( (self.nodes[nodeId][self.end][1], self.nodes[nodeId][self.end][0]) )
     return all
+
+  # for debugging
+  def Dump(self):
+    x = -1
+    for node in self.nodes:
+      x += 1
+      print '{0} {1}'.format(x, node)
 
 # splits tokens on a whitespace, and outputs unique tokens
 
@@ -80,7 +90,6 @@ else:
 vocab = Trie()
 if vocabReady:
   linesCounter = 0
-  id = 0 # widening the scope of id
   for line in vocabFile:
     splits = line.strip().split()
     if len(splits) == 0:
@@ -89,7 +98,7 @@ if vocabReady:
       print 'vocab file is malformatted at line #{0}'.format(linesCounter)
       exit()
     (id, token) = splits
-    vocab.Index(token, id)
+    indexedId = vocab.Index(token, int(id))
     linesCounter+= 1
 else:
   # id 0 is reserved for openfst epsilon
