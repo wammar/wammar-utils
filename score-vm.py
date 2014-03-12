@@ -7,6 +7,7 @@ from collections import defaultdict
 from math import log
 
 def dict_max(d):
+  assert len(d) > 0
   max_val=-1
   max_key=None
   for k in d:
@@ -32,8 +33,8 @@ gold_counts = defaultdict(lambda *x: 0)
 pred_counts = defaultdict(lambda *x: 0)
 total = 0
 for gold_line,pred_line in zip(gold_file,pred_file):
-  gold_tokens = gold_line.split()
-  pred_tokens = pred_line.split()
+  gold_tokens = gold_line.strip().split(' ')
+  pred_tokens = pred_line.strip().split(' ')
   assert len(gold_tokens) == len(pred_tokens)
 
   for gold_token,pred_token in zip(gold_tokens,pred_tokens):

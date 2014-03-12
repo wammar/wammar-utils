@@ -8,7 +8,7 @@ from collections import defaultdict
 # parse/validate arguments
 argParser = argparse.ArgumentParser()
 argParser.add_argument("-ratio", "--ratio", type=str, help="train:dev:test ratio e.g. 1000:1:1")
-argParser.add_argument("-corpus-src", "--corpusSrcFilename", type=str, help="input corpus file (src side)")
+argParser.add_argument("-corpus-src", "--corpusSrcFilename", type=str, required=True, help="input corpus file (src side)")
 argParser.add_argument("-corpus-tgt", "--corpusTgtFilename", type=str, help="input corpus file (tgt side)")
 argParser.add_argument("-train-src", "--trainSrcFilename", type=str, help="output train filename (src side)")
 argParser.add_argument("-train-tgt", "--trainTgtFilename", type=str, help="output train filename (tgt side)")
