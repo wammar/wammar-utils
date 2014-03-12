@@ -29,3 +29,8 @@ a python script that filters out parallel sentences with number of tokens.
 split-parallel-corpus.py
 ------------------------
 a python script that splits a parallel corpus into train/dev/test sets.
+
+=========================================
+american-english.txt, british-english.txt
+-----------------------------------------
+American vs. British English vocabulary collected from http://www.tysto.com/uk-us-spelling-list.html
