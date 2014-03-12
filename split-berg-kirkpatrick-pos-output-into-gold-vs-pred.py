@@ -15,10 +15,19 @@ predFile = io.open(predFilename, encoding='utf8', mode='w')
 counter = 0
 for inputLine in inputFile:
   counter += 1
-  sequence = inputLine.strip().split()
+  sequence = inputLine.strip().split(' ')
   goldSequence, predictionSequence = [], []
   for item in sequence:
-    [token,gold,prediction] = item.split('|')
+    splits = item.split('|')
+    if len(splits) < 3:
+      print 'len(splits) != 3 at line #', counter
+      print splits
+      assert False
+    elif len(splits) > 3:
+      while len(splits) > 3:
+        del splits[0]
+        splits[0] = u'bar'
+    [token,gold,prediction] = splits
     tokenGold = u'{0}/{1}'.format(token, gold)
     tokenPrediction = u'{0}/{1}'.format(token, prediction)
     goldSequence.append(tokenGold)

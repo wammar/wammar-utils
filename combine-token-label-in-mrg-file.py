@@ -16,9 +16,13 @@ counter = 0
 for tokensLine in tokensFile:
   labelsLine = labelsFile.readline()
   counter += 1
-  tokens = tokensLine.strip().split()
-  labels = labelsLine.strip().split()
-  assert(len(tokens) == len(labels))
+  tokens = tokensLine.strip().split(' ')
+  labels = labelsLine.strip().split(' ')
+  if(len(tokens) != len(labels)):
+    print 'len(tokens) = ', len(tokens), ' != len(labels) = ', len(labels)
+    print labels
+    print tokens
+    assert(False)
   outputFile.write(u'(S ')
   for i in range(0, len(tokens)):
     token = tokens[i].replace('(', '[[').replace(')', ']]')

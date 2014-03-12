@@ -6,6 +6,9 @@ import sys
 from collections import defaultdict
 
 def dict_max(d):
+  if len(d) == 0:
+    print d
+    assert False
   max_val=-1
   max_key=None
   for k in d:
@@ -31,8 +34,12 @@ topics_to_gold = defaultdict(dict)
 term_to_topics = defaultdict(dict)
 
 for gold_line,pred_line in zip(gold_file,pred_file):
-  gold_tokens = gold_line.split()
-  pred_tokens = pred_line.split()
+  gold_tokens = gold_line.strip().split(' ')
+  pred_tokens = pred_line.strip().split(' ')
+  if(len(gold_tokens) != len(pred_tokens)):
+    print len(gold_tokens), ' != ', len(pred_tokens)
+    print gold_tokens
+    print pred_tokens
   assert len(gold_tokens) == len(pred_tokens)
 
   for gold_token,pred_token in zip(gold_tokens,pred_tokens):
@@ -45,6 +52,8 @@ for gold_line,pred_line in zip(gold_file,pred_file):
       = term_to_topics[gold_term].get(pred_tag, 0) + 1
     topics_to_gold[pred_tag][gold_tag] \
       = topics_to_gold[pred_tag].get(gold_tag, 0) + 1
+
+print 'topics_to_gold is ', topics_to_gold
 
 pred=0
 correct=0
@@ -60,6 +69,7 @@ for gold_line,pred_line in zip(gold_file,pred_file):
     if just_tags:
       print "%s" % (pred_tag),
     else:
+      #print 'gold_token=', gold_token, ', pred_tag=', pred_tag
       print "%s/%s/%s" % (gold_token, pred_tag, dict_max(topics_to_gold[pred_tag])),
     pred += 1
     if gold_tag == dict_max(topics_to_gold[pred_tag]):
