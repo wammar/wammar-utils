@@ -65,7 +65,6 @@ def cluster_surface_by_lex(data_filename):
         if analysis.lex == '':
           continue
         lex2surface[analysis.lex].add(analysis.surface)
-        print analysis.lex, ' => ', analysis.surface
   return lex2surface
 
 # parse/validate arguments
