@@ -6,12 +6,18 @@
 #include <sstream>
 #include <fstream>
 #include <set>
+#include <algorithm>
 
 typedef std::string string;
 typedef std::stringstream stringstream;
 
 class StringUtils {
  public:
+
+  static void Lowercase(string &data) {
+    std::transform(data.begin(), data.end(), data.begin(), ::tolower);
+  }
+
   // string split
   static void SplitString(const string& s, char delim, std::vector<string>& elems) {
     stringstream ss(s);
