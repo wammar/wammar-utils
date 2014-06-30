@@ -32,6 +32,7 @@ class StringUtils {
   // trim from both ends
   static inline std::string &Trim(std::string &s) {
     return LTrim(RTrim(s));
+  }
 
   static void Lowercase(string &data) {
     std::transform(data.begin(), data.end(), data.begin(), ::tolower);
