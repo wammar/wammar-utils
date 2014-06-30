@@ -207,7 +207,7 @@ bool FstUtils::AreShadowFsts(const fst::VectorFst<LogQuadArc>& fst1, const fst::
 void FstUtils::SampleFst(const fst::VectorFst<LogQuadArc>& fst, fst::VectorFst<LogQuadArc>& sampledFst, int sampleSize) {
   assert(sampledFst.NumStates() == 0 && fst.NumStates() > 0);
   
-  int dumbSamplingClocks = 0;
+  //int dumbSamplingClocks = 0;
 
   // for debugging only
   //cerr << "sampling" << endl;
@@ -261,7 +261,7 @@ void FstUtils::SampleFst(const fst::VectorFst<LogQuadArc>& fst, fst::VectorFst<L
       // we want to sample the index of the sampled arc
       unsigned chosenArcIndex = -1;
 
-      clock_t timestamp = clock();
+      //clock_t timestamp = clock();
       // if this is the first time to visit currentFstState, create an alias sampler for it
       if(stateToSampler.count(currentFstState) == 0) {
 	// enumerate the arcs leaving the current fst state, and calculate their respective scores

@@ -6,12 +6,34 @@
 #include <sstream>
 #include <fstream>
 #include <set>
+#include <algorithm> 
+#include <functional> 
+#include <cctype>
+#include <locale>
 
 typedef std::string string;
 typedef std::stringstream stringstream;
 
 class StringUtils {
  public:
+
+  // trim from start
+  static inline std::string &LTrim(std::string &s) {
+    s.erase(s.begin(), std::find_if(s.begin(), s.end(), std::not1(std::ptr_fun<int, int>(std::isspace))));
+    return s;
+  }
+
+  // trim from end
+  static inline std::string &RTrim(std::string &s) {
+    s.erase(std::find_if(s.rbegin(), s.rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(), s.end());
+    return s;
+  }
+
+  // trim from both ends
+  static inline std::string &Trim(std::string &s) {
+    return LTrim(RTrim(s));
+  }
+
   // string split
   static void SplitString(const string& s, char delim, std::vector<string>& elems) {
     stringstream ss(s);
@@ -53,7 +75,7 @@ class StringUtils {
     if(srcWord.length() == 0 || tgtWord.length() == 0) {
       return 0.0;
     }
-    int levenshteinDistance = LevenshteinDistance(srcWord, tgtWord);
+    unsigned levenshteinDistance = LevenshteinDistance(srcWord, tgtWord);
     if(levenshteinDistance > (srcWord.length() + tgtWord.length()) / 2) {
       return 0.0;
     } else {
@@ -63,7 +85,7 @@ class StringUtils {
   }
   
   // levenshtein distance
-  static int LevenshteinDistance(const std::string& x, const std::string& y) {
+  static unsigned LevenshteinDistance(const std::string& x, const std::string& y) {
     if(x.length() == 0 && y.length() == 0) {
       return 0;
     }
@@ -73,7 +95,7 @@ class StringUtils {
     } else if (y.length() == 0) {
       return x.length();
     } else {
-      int cost = x[0] != y[0]? 1 : 0;
+      unsigned cost = x[0] != y[0]? 1 : 0;
       std::string xSuffix = x.substr(1);
     std::string ySuffix = y.substr(1);
     return std::min( std::min( LevenshteinDistance(xSuffix, y) + 1,
@@ -84,7 +106,7 @@ class StringUtils {
 
   static std::string IntVectorToString(const std::vector<int> &numbers) {
     std::stringstream ss("");
-    for(int i = 0; i < numbers.size(); i++) {
+    for(unsigned i = 0; i < numbers.size(); i++) {
       ss << numbers[i] << " ";
     }
     return ss.str();
@@ -128,11 +150,11 @@ class StringUtils {
 
   static void WriteTokens(const std::string &filename, std::vector<std::vector<int> > &tokens) {
     std::ofstream textFile(filename.c_str(), std::ios::out);
-    for(int i = 0 ; i < tokens.size(); i++) {
+    for(unsigned i = 0 ; i < tokens.size(); i++) {
       if(tokens[i].size() != 0) {
 	textFile << tokens[i][0];
       }
-      for(int j = 1 ; j < tokens[i].size(); j++) {
+      for(unsigned j = 1 ; j < tokens[i].size(); j++) {
 	textFile << " " << tokens[i][j];
       }
       textFile << "\n";

@@ -23,7 +23,7 @@ class ClustersComparer {
 
     // initialize the confusion matrix to all zeros
     std::set<std::string> aClusters, bClusters;
-    for(int i = 0; i < a.size(); i++) {
+    for(unsigned i = 0; i < a.size(); i++) {
       aClusters.insert(a[i]);
       bClusters.insert(b[i]);
     }
@@ -38,7 +38,7 @@ class ClustersComparer {
     }
 
     // fill in the entries
-    for(int i = 0; i < a.size(); i++) {
+    for(unsigned i = 0; i < a.size(); i++) {
       const std::string &aCluster = a[i], &bCluster = b[i];
       confusionMatrix[aCluster][bCluster]++;
     }

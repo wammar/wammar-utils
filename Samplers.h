@@ -35,7 +35,7 @@ GaussianSampler(double mean=0.0, double deviation=1.0) : width_(12) {
   double Draw() const {
     // generate an Irwin-Hall sample
     double sample = 0;
-    for(int i = 0; i < width_; i++) {
+    for(unsigned i = 0; i < width_; i++) {
       sample += uniformSampler_.Draw();
     }
     // adjust the range in order to approximate standard gaussian
@@ -56,7 +56,7 @@ struct MultinomialSampler {
   MultinomialSampler(std::vector<double>& probs) {
     this->probs = probs;
     totalProb = 0;
-    for(int i = 0; i < probs.size(); i++) {
+    for(unsigned i = 0; i < probs.size(); i++) {
       assert(probs[i] > 0);
       totalProb += probs[i];
     }
@@ -64,7 +64,7 @@ struct MultinomialSampler {
   
   virtual unsigned Draw() const {
     double shoot = uniformSampler.Draw() * totalProb;
-    for(int i = 0; i < probs.size(); i++) {
+    for(unsigned i = 0; i < probs.size(); i++) {
       if(probs[i] >= shoot) {
 	return i;
       } else {
