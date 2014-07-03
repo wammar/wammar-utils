@@ -152,6 +152,21 @@ class StringUtils {
     textFile.close();
   }
 
+  static void WriteTokens(const std::string &filename, std::vector<std::vector<int> > &tokens, 
+                          std::map<int, string> &intToStringMap) {
+    std::ofstream textFile(filename.c_str(), std::ios::out);
+    for(unsigned i = 0 ; i < tokens.size(); i++) {
+      if(tokens[i].size() != 0) {
+        textFile << intToStringMap[tokens[i][0]];
+      }
+      for(unsigned j = 1 ; j < tokens[i].size(); j++) {
+        textFile << " " << intToStringMap[tokens[i][j]];
+      }
+      textFile << "\n";
+    }
+    textFile.close();
+  }
+
   static void WriteTokens(const std::string &filename, std::vector<std::vector<int> > &tokens) {
     std::ofstream textFile(filename.c_str(), std::ios::out);
     for(unsigned i = 0 ; i < tokens.size(); i++) {
