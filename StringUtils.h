@@ -48,7 +48,25 @@ class StringUtils {
     }
   }
 
-  // read int tokens
+
+ static void RSplitString(const string& s, char delim, std::vector<string>& elems) {
+    stringstream ss;
+    std::vector<string> splitted; 
+    StringUtils::SplitString(s, delim, splitted);
+    auto last = splitted.end();
+    last--;
+    for(auto it = splitted.begin(); it != last; it++) {
+      if(it == splitted.begin()) {
+        ss << *it;
+      } else {
+        ss << delim << *it;
+      }
+    }
+    elems.push_back(ss.str());
+    elems.push_back(*last);
+  }
+
+// read int tokens
   static void ReadIntTokens(const string& sentence, std::vector<int>& intTokens) {
     std::vector<string> stringTokens;
     SplitString(sentence, ' ', stringTokens);
