@@ -3,9 +3,18 @@ import time
 import io
 import sys
 import nltk
+import argparse
+from collections import defaultdict
 
-inputFile = io.open(sys.argv[1], encoding='utf8', mode='r')
-outputFile = io.open(sys.argv[2], encoding='utf8', mode='w')
+# parse/validate arguments
+argparser = argparse.ArgumentParser()
+argparser.add_argument("-s", "--split", default=False, type=bool, help="split the word into characters when printing")
+argparser.add_argument("-i", "--input_filename")
+argparser.add_argument("-o", "--output_filename")
+args = argparser.parse_args()
+
+inputFile = io.open(args.input_filename, encoding='utf8', mode='r')
+outputFile = io.open(args.output_filename, encoding='utf8', mode='w')
 
 # find unique words
 words = set()
@@ -16,9 +25,12 @@ for line in inputFile:
 
 # print the letters
 for word in words:
-  for char in word:
-    outputFile.write(u'{0} '.format(char))
+  if args.split:
+    for char in word:
+      outputFile.write(u'{0} '.format(char))
+  else:
+    outputFile.write(word)
   outputFile.write(u'\n')
-                  
+
 inputFile.close()
 outputFile.close()
