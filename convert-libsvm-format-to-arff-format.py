@@ -53,9 +53,9 @@ with open(args.output_filename, 'w') as output_file, open(args.input_filename) a
       all_feature_ids.add(feature_id)
     # format output line
     for feature_id in all_feature_ids:
-      feature_value = features[feature_id] if feature_id in features else 0.0
+      feature_value = features[feature_id] if (feature_id in features) else 0.0
       output_file.write('{},'.format(feature_value))
-      output_file.write(label)
+    output_file.write(label)
     output_file.write('\n')
     if examples_written % 1000 == 0:
       print 'examples_written = {}'.format(examples_written)
