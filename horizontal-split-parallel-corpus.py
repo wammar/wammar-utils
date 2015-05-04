@@ -17,6 +17,8 @@ args = argParser.parse_args()
 
 if args.delimiter.lower() == 'tab':
   args.delimiter = '\t'
+elif args.delimiter.lower() == 'space':
+  args.delimiter = ' '
 
 inputFile = io.open(args.inputFilename, encoding=args.input_encoding, mode='r')
 outputFiles = []
@@ -30,10 +32,10 @@ for line in inputFile:
     print 'number of columns in line #', counter, ' is different than the number of output files specified'
     print 'columns = ', splits
     assert False
-  elif args.permissive and len(splits) > len(outputFiles):
-    print 'number of columns in line #', counter, ' is greater than the number of output files specified'
-    print 'columns = ', splits
-    assert False
+#  elif args.permissive and len(splits) > len(outputFiles):
+#    print 'number of columns in line #', counter, ' is greater than the number of output files specified'
+#    print 'columns = ', splits
+#    assert False
   for i in xrange(len(outputFiles)):
     if len(splits) <= i:
       outputFiles[i].write(u'\n')

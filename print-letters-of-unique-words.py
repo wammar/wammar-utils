@@ -8,7 +8,7 @@ from collections import defaultdict
 
 # parse/validate arguments
 argparser = argparse.ArgumentParser()
-argparser.add_argument("-s", "--split", default=False, type=bool, help="split the word into characters when printing")
+argparser.add_argument("-s", "--split", action='store_true', help="split the word into characters when printing")
 argparser.add_argument("-i", "--input_filename")
 argparser.add_argument("-o", "--output_filename")
 args = argparser.parse_args()

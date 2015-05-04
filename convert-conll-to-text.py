@@ -14,6 +14,8 @@ with io.open(args.input_filename) as input_file:
         output_file.write(u'\n')
       else:
         conll_fields = line.strip().split('\t')
+        # Skip lines which describe multiple words since each of the individual words has a separate line. 
+        if '-' in conll_fields[0]: continue
         output_file.write(conll_fields[args.one_based_column_number-1])
         output_file.write(u' ')
         
