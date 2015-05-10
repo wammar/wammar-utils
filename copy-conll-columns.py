@@ -4,10 +4,13 @@ import argparse
 argparser = argparse.ArgumentParser()
 argparser.add_argument("-i", "--input_filename", required=True)
 argparser.add_argument("-o", "--output_filename", required=True)
-argparser.add_argument("-k", "--one_based_column_numbers", nargs="+", type=int, required=True, help="space delimited list of one-based column indeces to clear.")
+argparser.add_argument("-f", type=int, required=True, 
+                       help="one-based index of the column to be copied.")
+argparser.add_argument("-t", type=int, required=True, 
+                       help="one-based index of the column to be overwritten.")
 args = argparser.parse_args()
-
-columns_to_clear = set(args.one_based_column_numbers)
+from_index = args.f
+to_index = args.t
 
 with io.open(args.input_filename) as input_file:
   with io.open(args.output_filename, mode='w') as output_file: 
@@ -16,6 +19,5 @@ with io.open(args.input_filename) as input_file:
         output_file.write(u'\n')
       else:
         conll_fields = line.strip().split('\t')
-        for column_index in columns_to_clear:
-          conll_fields[column_index - 1] = u'_'
+        conll_fields[to_index - 1] = conll_fields[from_index - 1]
         output_file.write(u'\t'.join(conll_fields) + u'\n')
