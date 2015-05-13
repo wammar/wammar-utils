@@ -53,15 +53,21 @@ bad_word_pairs = 0
 good_word_pairs = 0
 bad_language_pairs = {}
 good_language_pairs = set()
+
+language_name_to_iso={'czech':'cs', 'german':'de', 'english':'en', 'spanish':'es',
+                      'finnish':'fi', 'french':'fr', 'irish':'ga', 'hungarian':'hu',
+                      'italian':'it', 'swedish':'sw'}
 for src_lang in lang1_lang2_word1_word2.keys():
   for tgt_lang in lang1_lang2_word1_word2[src_lang].keys():
+    src_lang_iso = language_name_to_iso[src_lang] if src_lang in language_name_to_iso else src_lang
+    tgt_lang_iso = language_name_to_iso[tgt_lang] if tgt_lang in language_name_to_iso else tgt_lang
     try: 
-      print 'writing to {}/{}-{}'.format(args.outdir, src_lang, tgt_lang)
+      print 'writing to {}/wiktionary.{}-{}'.format(args.outdir, src_lang_iso, tgt_lang_iso)
     except:
       bad_language_pairs[src_lang+'<=>'+tgt_lang] = lang1_lang2_word1_word2[src_lang][tgt_lang]
       continue
     good_language_pairs.add(src_lang+u'<=>'+tgt_lang)
-    with open('{}/{}-{}'.format(args.outdir, src_lang, tgt_lang), mode='w') as outfile:
+    with open('{}/wiktionary.{}-{}'.format(args.outdir, src_lang_iso, tgt_lang_iso), mode='w') as outfile:
       for (src_word, tgt_words_set) in lang1_lang2_word1_word2[src_lang][tgt_lang].iteritems():
         for tgt_word in tgt_words_set:
           try: 

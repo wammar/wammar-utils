@@ -16,12 +16,9 @@ outputFile = gzip.open(args.output, mode='w') if args.output.endswith('.gz') els
 
 for line in inputFile:
   line = line.decode('utf8')
-  tokens = line.strip().split()
-  for i in xrange(len(tokens)):
-    tokens[i] = tokens[i].lower()
-    token = tokens[i].encode('utf8')
-    outputFile.write('{}{}'.format(token, ' ' if i < len(tokens)-1 else ''))
-  outputFile.write('\n')
+  line = line.lower()
+  line = line.encode('utf8')
+  outputFile.write('{}'.format(line))
                   
 inputFile.close()
 outputFile.close()

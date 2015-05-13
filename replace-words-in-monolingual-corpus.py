@@ -12,7 +12,7 @@ from collections import defaultdict
 # parse/validate arguments
 argparser = argparse.ArgumentParser()
 argparser.add_argument("-d", "--dictionary-filename", help=
-                       " Each line specifies a unique word and what it should map to; e.g., 'dog ||| chien'")
+                       " Each line specifies a unique word and what it should map to; e.g., 'en:dog ||| en:dog_|_fr:chien'")
 argparser.add_argument("-i", "--input-filename", help=" Input tokenized text.")
 argparser.add_argument("-o", "--output-filename", help=
                        " The same text in the input file, but each word in the dictionary file is replaced " + 
