@@ -479,15 +479,15 @@ sub read_sent
 
     @fields_s{'word', 'pos', 'head', 'dep'} = (split (/\s+/, $line_s))[1, 3, 6, 7] ;
 
-    if (($fields_g{word} ne $fields_s{word})
-	||
-	($fields_g{pos} ne $fields_s{pos}))
-    {
-      printf STDERR "Word/pos mismatch, line %d:\n", $line_num ;
-      printf STDERR " gold: %s", $line_g ;
-      printf STDERR " sys : %s", $line_s ;
-      exit(1) ;
-    }
+  #  if (($fields_g{word} ne $fields_s{word})
+	#||
+	#($fields_g{pos} ne $fields_s{pos}))
+  #  {
+  #    printf STDERR "Word/pos mismatch, line %d:\n", $line_num ;
+  #    printf STDERR " gold: %s", $line_g ;
+  #    printf STDERR " sys : %s", $line_s ;
+  #    exit(1) ;
+  #  }
 
     push @{$sent_sys}, { %fields_s } ;
 

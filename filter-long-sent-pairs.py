@@ -25,7 +25,11 @@ tgtCorpusOut = io.open(args.target_output, encoding='utf8', mode='w') if args.ta
 pllCorpusOut = io.open(args.parallel_output, encoding='utf8', mode='w') if args.parallel_output and not args.source_output and not args.target_output else None
 
 def WritePairIfNotTooLong(src, tgt):
+  # return if too long
   if len(src.split(' ')) > args.source_max_length or len(tgt.split(' ')) > args.target_max_length:
+    return
+  # return if too short
+  if len(src.strip()) == 0 or len(tgt.strip()) == 0:
     return
   if pllCorpusOut:
     pllCorpusOut.write(u'{} ||| {}'.format(src, tgt))

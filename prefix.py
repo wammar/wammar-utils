@@ -1,5 +1,6 @@
 import io
 import argparse
+import re
 
 argparser = argparse.ArgumentParser()
 argparser.add_argument("-i", "--input_filename", required=True)
@@ -16,4 +17,4 @@ with io.open(args.input_filename) as input_file, io.open(args.output_filename, m
   for line in input_file:
     if regex.search(line):
       line = prefix + line
-    output_file.write(prefix + line)
+    output_file.write(line)

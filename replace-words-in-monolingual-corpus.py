@@ -28,7 +28,8 @@ with io.open(args.dictionary_filename, encoding='utf8', mode='r') as dictionary_
     splits = line.split(' ||| ')
     assert len(splits) == 2
     if splits[0].strip() in dictionary_items:
-      print u"WARNING: '{}' appears twice at the left side of the dictionary. Old mapping is {}. New mapping is {}. I will ignore the new mapping and keep the old one.".format(splits[0].strip(), dictionary_items[splits[0].strip()], splits[1].strip())
+      print u"WARNING: a word appears twice at the left side of the dictionary. I'll use the older mapping and discard the new one."
+      #Old mapping is {}. New mapping is {}. I will ignore the new mapping and keep the old one.".format(splits[0].strip(), dictionary_items[splits[0].strip()], splits[1].strip())
       continue
     dictionary_items[splits[0].strip()] = splits[1].strip()
   print 'read {} dictionary items.'.format(len(dictionary_items))

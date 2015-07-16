@@ -35,6 +35,7 @@ for filename in args.dictionary_filenames[0]:
   assert len(splits) == 2
   lang1, lang2 = splits
   dictionary_files[(lang1, lang2)] = io.open(filename, encoding='utf8', mode='r')
+  print '{}->{}: {}'.format(lang1, lang2, filename)
 
 # initialize the map from each word (e.g., 'en:dog') to the index of its cluster in the 
 # array of clusters.
