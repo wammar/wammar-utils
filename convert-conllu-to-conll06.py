@@ -23,9 +23,12 @@ with io.open(args.input_filename) as input_file:
         conll_fields = line.strip().split('\t')
         # Skip lines which describe multiple words since each of the individual words has a separate line.
         if '-' in conll_fields[0]: continue
+        # remove language specific extensions of dependency relationships.
+        if ':' in conll_fields[7]: conll_fields[7] = conll_fields[7][:conll_fields[7].find(':')]
+        line = u'\t'.join(conll_fields)+u'\n'
         current_sentence.append(line)
+
     # consumed all lines in input file
     if len(current_sentence) > 0:
       output_file.write(u''.join(current_sentence) + u'\n')
       current_sentence = []
-

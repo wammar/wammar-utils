@@ -21,7 +21,7 @@ argparser.add_argument("-o", "--output-filename", help=
                        " dictionaries. Each word in the output file is prefixed with the   " +
                        " language identifier used as a suffix in the dictionary filename(s)" + 
                        " Example output line: 'en:dog ||| fr:chien\tes:perro")
-argparser.add_argument("-m", "--max-cluster-size", type=int, default=10, help=
+argparser.add_argument("-m", "--max-cluster-size", type=int, default=1000, help=
                        " Ignore translation pairs which result in a cluster with size > m")
 argparser.add_argument("-s", "--cluster-separator", default="_|_", help=
                        " Use this string to separate between words which belong to the same" +
@@ -88,4 +88,5 @@ print '{} = total number of dictionaries used'.format(translations_counter)
 print 'now, persisting...'
 with io.open(args.output_filename, encoding='utf8', mode='w') as output_file:
   for word in word_to_cluster_index.keys():
-    output_file.write(u'{} ||| {}\n'.format(word, args.cluster_separator.join(clusters[word_to_cluster_index[word]])))
+    #output_file.write(u'{} ||| {}\n'.format(word, args.cluster_separator.join(clusters[word_to_cluster_index[word]])))
+    output_file.write(u'{} ||| {}\n'.format(word, 'clusterid' + str(word_to_cluster_index[word])))

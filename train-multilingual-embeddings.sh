@@ -47,7 +47,7 @@ python $wammar_utils/replace-words-in-monolingual-corpus.py -d $out/word_cluster
 cat $out/corpus_cs.langprefix $out/corpus_de.langprefix $out/corpus_en.langprefix $out/corpus_es.langprefix $out/corpus_fi.langprefix $out/corpus_fr.langprefix $out/corpus_ga.langprefix $out/corpus_hu.langprefix $out/corpus_it.langprefix $out/corpus_sv.langprefix > $out/corpus.langprefix
 
 # estimate superword embeddings
-$word2vec/word2vec -train $out/corpus.langprefix -min-frequency 40 -type 3 -threads 32 -output $out/cluster_embeddings
+$word2vec/word2vec -train $out/corpus.langprefix -min-frequency 40 -type 1 -threads 32 -output $out/cluster_embeddings
 
 # repeat the same embedding for all words in a superword
 python $wammar_utils/convert-closure-embeddings-to-word-embeddings.py -i $out/cluster_embeddings -o $out/embeddings
