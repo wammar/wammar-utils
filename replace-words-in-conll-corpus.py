@@ -55,10 +55,11 @@ with io.open(args.input_filename, encoding='utf8', mode='r') as input_file, io.o
       mapped_value = 'UNK'
       tokens_not_found += 1
     if args.use_language_prefix:
-      splits[1] = splits[1][:3] + mapped_value
       # map (cluster, language) -> word 
       # note that the same cluster may have multiple words from the same language in which case the one that appears later in the treebank will be written to the output file.
       cluster_language_to_word[(mapped_value, splits[1][:2])] = splits[1][3:]
+      # replace the surface string with the cluster id
+      splits[1] = splits[1][:3] + mapped_value
     else:
       splits[1] = mapped_value
     output_file.write(u'{}\n'.format('\t'.join(splits)))
