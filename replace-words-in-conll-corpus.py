@@ -52,7 +52,7 @@ with io.open(args.input_filename, encoding='utf8', mode='r') as input_file, io.o
       mapped_value = dictionary_items[splits[1]]
       tokens_found += 1
     else:
-      mapped_value = 'UNK'
+      mapped_value = 'UNK_CLUSTER'
       tokens_not_found += 1
     if args.use_language_prefix:
       # map (cluster, language) -> word 

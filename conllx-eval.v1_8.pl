@@ -470,14 +470,15 @@ sub read_sent
     }
 
     # 'official' column names
-    # options.output = ['id','form','lemma','cpostag','postag',
-    #                   'feats','head','deprel','phead','pdeprel']
+    # options.output = ['id','form','lemma','cpostag','postag','feats','head','deprel','phead','pdeprel']
+    #@fields_g{'word', 'pos', 'head', 'dep'} = (split (/\s+/, $line_g))[1, 3, 6, 7] ;
+    #push @{$sent_gold}, { %fields_g } ;
+    #@fields_s{'word', 'pos', 'head', 'dep'} = (split (/\s+/, $line_s))[1, 3, 6, 7] ;
 
-    @fields_g{'word', 'pos', 'head', 'dep'} = (split (/\s+/, $line_g))[1, 3, 6, 7] ;
-
+    # EDIT for universal dependency treebanks:  ['id','form','_____','_______','postag','_____','head','deprel','phead','pdeprel']
+    @fields_g{'word', 'pos', 'head', 'dep'} = (split (/\s+/, $line_g))[1, 4, 6, 7] ;
     push @{$sent_gold}, { %fields_g } ;
-
-    @fields_s{'word', 'pos', 'head', 'dep'} = (split (/\s+/, $line_s))[1, 3, 6, 7] ;
+    @fields_s{'word', 'pos', 'head', 'dep'} = (split (/\s+/, $line_s))[1, 4, 6, 7] ;
 
   #  if (($fields_g{word} ne $fields_s{word})
 	#||

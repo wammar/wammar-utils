@@ -56,7 +56,12 @@ good_language_pairs = set()
 
 language_name_to_iso={'czech':'cs', 'german':'de', 'english':'en', 'spanish':'es',
                       'finnish':'fi', 'french':'fr', 'irish':'ga', 'hungarian':'hu',
-                      'italian':'it', 'swedish':'sw'}
+                      'italian':'it', 'swedish':'sv', 'bulgarian':'bg', 'danish':'da',
+                      'greek':'el', 'persian':'fa', 'croatian':'hr', 'hebrew':'he',
+                      'basque':'eu', 'indonesian':'id', 'japanese':'ja', 'korean':'ko',
+                      'portuguese':'pt', 'estonian':'et', 'lithuanian':'lt', 'latvian':'lv',
+                      'dutch':'nl', 'polish':'pl', 'romanian':'ro', 'slovak':'sk', 
+                      'slovene':'sl'}
 for src_lang in lang1_lang2_word1_word2.keys():
   for tgt_lang in lang1_lang2_word1_word2[src_lang].keys():
     src_lang_iso = language_name_to_iso[src_lang] if src_lang in language_name_to_iso else src_lang

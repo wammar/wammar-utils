@@ -13,8 +13,8 @@ argparser.add_argument("-ti", "--target-input")
 argparser.add_argument("-po", "--parallel-output")
 argparser.add_argument("-so", "--source-output")
 argparser.add_argument("-to", "--target-output")
-argparser.add_argument("-sml", "--source-max-length", type=int, default=10)
-argparser.add_argument("-tml", "--target-max-length", type=int, default=10) 
+argparser.add_argument("-sml", "--source-max-length", type=int, default=100)
+argparser.add_argument("-tml", "--target-max-length", type=int, default=100)
 args = argparser.parse_args()
 
 srcCorpusIn = io.open(args.source_input, encoding='utf8', mode='r') if args.source_input else None
@@ -34,8 +34,8 @@ def WritePairIfNotTooLong(src, tgt):
   if pllCorpusOut:
     pllCorpusOut.write(u'{} ||| {}'.format(src, tgt))
   elif srcCorpusOut and tgtCorpusOut:
-    srcCorpusOut.write(u'{}'.format(src))
-    tgtCorpusOut.write(u'{}'.format(tgt))
+    srcCorpusOut.write(u'{}\n'.format(src))
+    tgtCorpusOut.write(u'{}\n'.format(tgt))
   else:
     print 'You must provide either (parallel-output) or both (source-output and target-output)'
     exit(1)
@@ -46,7 +46,7 @@ if pllCorpusIn:
     WritePairIfNotTooLong(src, tgt)
 elif srcCorpusIn and tgtCorpusIn:
   for src, tgt in izip(srcCorpusIn, tgtCorpusIn):
-    src = src.rstrip()
+    src, tgt = src.rstrip(), tgt.rstrip()
     WritePairIfNotTooLong(src, tgt)
 else:
   print 'You must provide either (parallel-input) or both (source-input and target-input)'

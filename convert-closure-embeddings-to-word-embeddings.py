@@ -4,6 +4,7 @@ import io
 import sys
 import argparse
 from collections import defaultdict
+import gzip
 
 # each line corresponds to the embedding of one cluster/closure of words which are translationally equivalent 
 # from one or more languages. An example cluster of two words is "en:dog_|_fr:chien". If such cluster appears
@@ -13,15 +14,28 @@ from collections import defaultdict
 
 # parse/validate arguments
 argparser = argparse.ArgumentParser()
-argparser.add_argument("-i", "--input-filename", help=
-                       " An embeddings file (word2vec format) where the first column is a cluster/closure of words.")
-argparser.add_argument("-o", "--output-filename", help=
+argparser.add_argument("-i", "--input-filename", required=True, help=
+                       " An embeddings file (word2vec format) where the first column is a cluster id.")
+argparser.add_argument("-o", "--output-filename", required=True, help=
                        " An embeddings file (word2vec format) where the first column corresponds to individual words.")
-argparser.add_argument("-s", "--cluster-separator", default="_|_", help=
+argparser.add_argument("-w", "--word-clusters", required=True, help=
                        " Use this string to split between words which belong to the same" +
                        " cluster in the input file.")
-argparser.add_argument("-g", "--ignore", action='store_true', help="ignore words which don't belong to a closure/cluster")
 args = argparser.parse_args()
+
+cluster_to_words = defaultdict(list)
+with gzip.open(args.word_clusters) if args.word_clusters.endswith('.gz') else open(args.word_clusters) as word_clusters_file:
+  # read word clusters
+  for line in word_clusters_file:
+    try:
+      line = line.decode('utf8')
+    except UnicodeDecodeError:
+      print 'WARNING: utf8 decoding error for the line:', line, '. Will skip this one.'
+      continue    
+    splits = line.strip().split(" ||| ")
+    assert(len(splits) == 2)
+    qualified_word, cluster_id = splits[0], splits[1]
+    cluster_to_words[cluster_id].append(qualified_word)
 
 # stream
 with gzip.open(args.output_filename, mode='w') if args.output_filename.endswith('.gz') else open(args.output_filename, mode='w') as output_file, gzip.open(args.input_filename, mode='r') if args.input_filename.endswith('.gz') else open(args.input_filename, mode='r') as input_file:
@@ -51,17 +65,11 @@ with gzip.open(args.output_filename, mode='w') if args.output_filename.endswith(
     # merge embedding values back into a utf8-encoded string
     embedding_string = u' '.join(line_splits[1:]).encode('utf8')
     # split the cluster string into words
-    cluster_splits = line_splits[0].split(args.cluster_separator)
-    for i in xrange(len(cluster_splits)):
-      word = cluster_splits[i]
-      if i == len(cluster_splits) - 1:
-        if len(word) < 5: continue
-        if word.endswith('_|'): word = word[:-2]
-        if word.endswith('_'): word = word[:-1]
+    cluster = line_splits[0]
+    for word in cluster_to_words[cluster]:
       if word in unique_words:
         print u"WARNING: '{}' appears twice in input embeddings file. Will let go because the embeddings were apparently messed up. Please consider rebuilding your embeddings such that the cluster strings are not cut off. word2vec cuts off words of length > 1000 by default.".format(word)
       out_line = '{} {}\n'.format(word.encode('utf8'), embedding_string)
       # when -g is specified, don't write this line if the cluster is of size 1
-      if args.ignore and len(cluster_splits) == 1: continue
       output_file.write(out_line)
-    unique_words |= set(cluster_splits)
+      unique_words |= set(word)

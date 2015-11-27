@@ -13,15 +13,21 @@ argparser.add_argument("-sswl", help="csv file downloaded from kimono labs' api 
 argparser.add_argument("-wals", help="csv file downloaded from wals, e.g., wals_features.csv in this repository")
 argparser.add_argument("-pat", help="modified typological features provided by Patrick Littell <puchitao@gmail.com>")
 argparser.add_argument("-ov", "--output_vectors", help="one language per row. features are binary encoded.")
-argparser.add_argument("-naseem10", action="store_true", help="only use the WALS features Naseem et al. 2010 used, namely: 81a,85a,86a,87a,88a,89a")
+argparser.add_argument("-zhang15", action="store_true", help="only use the WALS features Zhang and Barzilay 2010 used, namely: 82a,83a,85a,86a,87a")
+argparser.add_argument("-genus", action="store_true", help="only use the genus feature in WALS")
 args = argparser.parse_args()
 
-naseem10_feature_ids = set(['wals_81a_order_of_subject,_object_and_verb',
+genus_feature_id = 'wals_genus'
+
+zhang15_feature_ids = set(['wals_82a_order_of_subject_and_verb', # used by zhang15 but not naseem10
+                            'wals_83a_order_of_object_and_verb', # used by zhang15 but not naseem10
+                            #'wals_81a_order_of_subject,_object_and_verb', # used by naseem10 but not zhang15
+                            #'wals_81b_languages_with_two_dominant_orders_of_subject,_object,_and_verb',
                             'wals_85a_order_of_adposition_and_noun_phrase',
                             'wals_86a_order_of_genitive_and_noun',
-                            'wals_87a_order_of_adjective_and_noun',
-                            'wals_88a_order_of_demonstrative_and_noun',
-                            'wals_89a_order_of_numeral_and_noun'])
+                            'wals_87a_order_of_adjective_and_noun'])
+                            #'wals_88a_order_of_demonstrative_and_noun', # used by naseem10 but not zhang15
+                            #'wals_89a_order_of_numeral_and_noun' # used by naseem10 but not zhang15
 
 lang_to_feature_id_to_value = defaultdict(lambda: defaultdict(str))
 lang_code_to_name = { 'bg' : 'bulgarian',
@@ -105,10 +111,6 @@ with open(args.wals, mode='rb') as wals_file:
       lang_to_feature_id_to_value[lang_code][feature_id] = feature_value
       global_feature_id_to_values[feature_id].add(feature_value)
 
-# my manual edits of features
-global_feature_id_to_values['wals_89a_order_of_numeral_and_noun'].add('1_numeral-noun')
-lang_to_feature_id_to_value['pt']['wals_89a_order_of_numeral_and_noun'] = '1_numeral-noun'
-
 # now, only keep features which are specified for all languages of interest.
 # count number of languages specified for each language
 feature_id_to_count_of_specified_languages = defaultdict(int)
@@ -120,9 +122,14 @@ for lang_code in lang_to_feature_id_to_value.keys():
 # remove unwanted features
 for lang_code in lang_to_feature_id_to_value.keys():
   for feature_id in list(lang_to_feature_id_to_value[lang_code].keys()):
-    # if we're only doing naseem10 features, delete everything else.
-    if args.naseem10:
-      if feature_id not in naseem10_feature_ids: 
+    # if we're only doing zhang15 features, delete everything else.
+    if args.zhang15:
+      if feature_id not in zhang15_feature_ids: 
+        del lang_to_feature_id_to_value[lang_code][feature_id]
+        if feature_id in global_feature_id_to_values: del global_feature_id_to_values[feature_id]
+    # if we're only doing genus features, delete everything else.
+    elif args.genus:
+      if feature_id != genus_feature_id:
         del lang_to_feature_id_to_value[lang_code][feature_id]
         if feature_id in global_feature_id_to_values: del global_feature_id_to_values[feature_id]
     # otherwise, delete features that are not specified for all languages
