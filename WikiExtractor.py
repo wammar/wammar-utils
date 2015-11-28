@@ -14,6 +14,7 @@
 #	Pedro Assis (pedroh2306@gmail.com)
 #	Wim Muskee (wimmuskee@gmail.com)
 #	Radics Geza (radicsge@gmail.com)
+#       Waleed Ammar (waleed.ammar@gmail.com)
 #
 # =============================================================================
 #  Copyright (c) 2009-2015. Giuseppe Attardi (attardi@di.unipi.it).
@@ -2134,7 +2135,7 @@ class OutputSplitter(object):
     File-like object, that splits output to multiple files of a given max size.
     """
 
-    def __init__(self, nextFile, max_file_size=0, compress=True):
+    def __init__(self, nextFile, maximum_output_files, max_file_size=0, compress=True):
         """
         :param nextfile: a NextFile object from which to obtain filenames
             to use.
@@ -2145,10 +2146,16 @@ class OutputSplitter(object):
         self.compress = compress
         self.max_file_size = max_file_size
         self.file = self.open(self.nextFile.next())
+        self.files_counter = 1
+        self.maximum_output_files = maximum_output_files
 
     def reserve(self, size):
         if self.file.tell() + size > self.max_file_size:
             self.close()
+            if self.files_counter == self.maximum_output_files:
+                logging.info('Wrote ' + str(self.files_counter) + ' output files, which is the maximum number of output files specified. Will now quit to save time and disk space.')
+                sys.exit(0);
+            self.files_counter += 1
             self.file = self.open(self.nextFile.next())
 
     def write(self, data):
@@ -2240,7 +2247,7 @@ def load_templates(file, output_file=None):
         logging.info("Saved %d templates to '%s'", len(templates), output_file)
 
 def process_dump(input_file, template_file, out_file, file_size, file_compress,
-                 process_count):
+                 process_count, maximum_output_files):
     """
     :param input_file: name of the wikipedia dump file; '-' to read from stdin
     :param template_file: optional file with template definitions.
@@ -2308,7 +2315,7 @@ def process_dump(input_file, template_file, out_file, file_size, file_compress,
             logging.warn("writing to stdout, so no output compression (use external tool)")
     else:
         nextFile = NextFile(out_file)
-        output = OutputSplitter(nextFile, file_size, file_compress)
+        output = OutputSplitter(nextFile, maximum_output_files, file_size, file_compress)
 
     # process pages
     logging.info("Starting page extraction from %s.", input_file)
@@ -2482,6 +2489,8 @@ def main():
                         metavar="n[KMG]")
     groupO.add_argument("-c", "--compress", action="store_true",
                         help="compress output files using bzip")
+    groupO.add_argument("-mo", "--maximum_output_files", type=int, default=4,
+                        help="use this to extract a subset of the articles text.")
 
     groupP = parser.add_argument_group('Processing')
     groupP.add_argument("--html", action="store_true",
@@ -2580,7 +2589,7 @@ def main():
             return
 
     process_dump(input_file, args.templates, output_path, file_size,
-                 args.compress, args.processes)
+                 args.compress, args.processes, args.maximum_output_files)
 
 
 if __name__ == '__main__':
