@@ -16,6 +16,8 @@ with io.open(args.input_filename) as input_file, io.open(args.output_filename, m
   for line in input_file:
     if len(line.strip()) == 0:
       output_file.write(u'\n')
+    elif line[0] == '#':
+      continue
     else:
       conll_fields = line.strip().split('\t')
       conll_fields[column_index - 1] = prefix + conll_fields[column_index - 1]

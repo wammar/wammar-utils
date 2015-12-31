@@ -66,7 +66,9 @@ with gzip.open(args.output_filename, mode='w') if args.output_filename.endswith(
     embedding_string = u' '.join(line_splits[1:]).encode('utf8')
     # split the cluster string into words
     cluster = line_splits[0]
-    for word in cluster_to_words[cluster]:
+    words = cluster_to_words[cluster]
+    assert(len(words) == 0)
+    for word in words:
       if word in unique_words:
         print u"WARNING: '{}' appears twice in input embeddings file. Will let go because the embeddings were apparently messed up. Please consider rebuilding your embeddings such that the cluster strings are not cut off. word2vec cuts off words of length > 1000 by default.".format(word)
       out_line = '{} {}\n'.format(word.encode('utf8'), embedding_string)
