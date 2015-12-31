@@ -19,8 +19,7 @@ argparser.add_argument("-i", "--input-filename", required=True, help=
 argparser.add_argument("-o", "--output-filename", required=True, help=
                        " An embeddings file (word2vec format) where the first column corresponds to individual words.")
 argparser.add_argument("-w", "--word-clusters", required=True, help=
-                       " Use this string to split between words which belong to the same" +
-                       " cluster in the input file.")
+                       " each line is formatted as 'surface_form ||| cluster_id', indicating that the word 'surface_form' is one of the words in cluster 'cluster_id'")
 args = argparser.parse_args()
 
 cluster_to_words = defaultdict(list)
