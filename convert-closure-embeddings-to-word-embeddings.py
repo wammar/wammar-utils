@@ -19,7 +19,7 @@ argparser.add_argument("-i", "--input-filename", required=True, help=
 argparser.add_argument("-o", "--output-filename", required=True, help=
                        " An embeddings file (word2vec format) where the first column corresponds to individual words.")
 argparser.add_argument("-w", "--word-clusters", required=True, help=
-                       " each line is formatted as 'surface_form ||| cluster_id', indicating that the word 'surface_form' is one of the words in cluster 'cluster_id'")
+                       " each line is formatted as 'cluster_id\tsurface_form\tfreq', indicating that the word 'surface_form' is one of the words in cluster 'cluster_id'. freq is obsolete and only used for compatibility with percy liang's cluster outputs")
 args = argparser.parse_args()
 
 cluster_to_words = defaultdict(list)
@@ -31,11 +31,12 @@ with gzip.open(args.word_clusters) if args.word_clusters.endswith('.gz') else op
     except UnicodeDecodeError:
       print 'WARNING: utf8 decoding error for the line:', line, '. Will skip this one.'
       continue    
-    splits = line.strip().split(" ||| ")
-    assert(len(splits) == 2)
-    qualified_word, cluster_id = splits[0], splits[1]
+    splits = line.strip().split("\t")
+    assert(len(splits) == 3)
+    qualified_word, cluster_id = splits[1], splits[0]
     cluster_to_words[cluster_id].append(qualified_word)
-
+print '{} clusters read from {}'.format(len(cluster_to_words), args.word_clusters)
+    
 # stream
 with gzip.open(args.output_filename, mode='w') if args.output_filename.endswith('.gz') else open(args.output_filename, mode='w') as output_file, gzip.open(args.input_filename, mode='r') if args.input_filename.endswith('.gz') else open(args.input_filename, mode='r') as input_file:
   # initialize
@@ -65,8 +66,11 @@ with gzip.open(args.output_filename, mode='w') if args.output_filename.endswith(
     embedding_string = u' '.join(line_splits[1:]).encode('utf8')
     # split the cluster string into words
     cluster = line_splits[0]
+    if cluster == '</s>': continue
+    if cluster not in cluster_to_words:
+      print 'FATAL: cluster {} not found in {}. Will die!'.format(cluster, args.word_clusters) 
+      assert(cluster in cluster_to_words)
     words = cluster_to_words[cluster]
-    assert(len(words) == 0)
     for word in words:
       if word in unique_words:
         print u"WARNING: '{}' appears twice in input embeddings file. Will let go because the embeddings were apparently messed up. Please consider rebuilding your embeddings such that the cluster strings are not cut off. word2vec cuts off words of length > 1000 by default.".format(word)

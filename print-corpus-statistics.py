@@ -8,7 +8,8 @@ from collections import defaultdict
 
 # parse/validate arguments
 argparser = argparse.ArgumentParser()
-argparser.add_argument("-i", "--input_filename", help="parallel corpus (lang1, lang2)")
+argparser.add_argument("-i", "--input_filename", help="corpus")
+argparser.add_argument("-o", "--output_filename", help="stats")
 args = argparser.parse_args()
 
 word2freq = {}
@@ -25,6 +26,10 @@ for word in word2freq.keys():
   freq2word_count[word2freq[word]] += 1
   max_freq = max(max_freq, word2freq[word])
 
-print 'freq\tword count'
-for freq in reversed(range(1, max_freq+1)):
-  print '{}\t{}'.format(freq, freq2word_count[freq])
+with io.open(args.output_filename, encoding='utf8', mode='w') as output_file:
+  output_file.write(u'freq\tnumber of words with this freq\tnumber of words with at least this frequency\n')
+  total = 0
+  for freq in reversed(range(1, max_freq+1)):
+    if freq not in freq2word_count: continue
+    total += freq2word_count[freq]
+    output_file.write(u'{}\t{}\t{}\n'.format(freq, freq2word_count[freq], total))
