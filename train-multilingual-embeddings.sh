@@ -7,14 +7,14 @@ export corpus_da="/home/gmulc/corpora/monolingual-total/da/combo.da"
 export corpus_it="/home/gmulc/corpora/monolingual-total/it/combo.it"
 
 # create output directory (and make sure it's empty, commented out to avoid an accidental disaster)
-#mkdir $out
+mkdir $out
 #rm -rf $out/*
 
 # create superwords
-#python $wammar_utils/map-words-to-transitive-closures.py -i $bilingual_dictionaries -o $out/word_clusters -m 100
+python $wammar_utils/map-words-to-transitive-closures.py -i $bilingual_dictionaries -o $out/word_clusters -m 100
 
 # replace words with superwords in individual monolingual corpora 
-#python $wammar_utils/replace-words-in-monolingual-corpus.py -c $out/word_clusters -l da: it: en: -i $corpus_da $corpus_it $corpus_en -o $out/corpus.langprefix
+python $wammar_utils/replace-words-in-monolingual-corpus.py -c $out/word_clusters -l da: it: en: -i $corpus_da $corpus_it $corpus_en -o $out/corpus.langprefix
 
 # estimate superword embeddings
 $word2vec/word2vec -train $out/corpus.langprefix -min-count 5 -window 3 -iter 20 -size 40 -type 1 -output $out/cluster_embeddings
