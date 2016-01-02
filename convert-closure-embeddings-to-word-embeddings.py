@@ -19,8 +19,7 @@ argparser.add_argument("-i", "--input-filename", required=True, help=
 argparser.add_argument("-o", "--output-filename", required=True, help=
                        " An embeddings file (word2vec format) where the first column corresponds to individual words.")
 argparser.add_argument("-w", "--word-clusters", required=True, help=
-                       " Use this string to split between words which belong to the same" +
-                       " cluster in the input file.")
+                       " each line is formatted as 'surface_form ||| cluster_id', indicating that the word 'surface_form' is one of the words in cluster 'cluster_id'")
 args = argparser.parse_args()
 
 cluster_to_words = defaultdict(list)
@@ -66,7 +65,9 @@ with gzip.open(args.output_filename, mode='w') if args.output_filename.endswith(
     embedding_string = u' '.join(line_splits[1:]).encode('utf8')
     # split the cluster string into words
     cluster = line_splits[0]
-    for word in cluster_to_words[cluster]:
+    words = cluster_to_words[cluster]
+    assert(len(words) == 0)
+    for word in words:
       if word in unique_words:
         print u"WARNING: '{}' appears twice in input embeddings file. Will let go because the embeddings were apparently messed up. Please consider rebuilding your embeddings such that the cluster strings are not cut off. word2vec cuts off words of length > 1000 by default.".format(word)
       out_line = '{} {}\n'.format(word.encode('utf8'), embedding_string)
