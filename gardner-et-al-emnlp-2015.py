@@ -1,3 +1,4 @@
+import subprocess
 import gzip
 import re
 import time
@@ -7,16 +8,17 @@ import argparse
 from collections import defaultdict
 import scipy
 from scipy.sparse import coo_matrix
-from scipy.io import savemat
+from scipy.io import savemat, loadmat
 
 # parse/validate arguments
 argparser = argparse.ArgumentParser()
-argparser.add_argument("-c", "--corpus", help="input corpus")
-argparser.add_argument("-a", "--alignments", help="alignments probabilities")
-argparser.add_argument("-m", "--matrix", help="output binary .mat file with a sparse, squared matrix X which encodes word cooccurence statistics.")
-argparser.add_argument("-v", "--vocab", help="output text file which specifies each word in the vocabulary and which dimension in X's rows and columns it corresponds to. Note the vocabulary excludes infrequent words.")
+argparser.add_argument("-c", "--corpus", required=True, help="input corpus")
+argparser.add_argument("-a", "--alignments", required= True, help="alignments probabilities")
+argparser.add_argument("-m", "--matrix", required = True, help="output binary .mat file with a sparse, squared matrix X which encodes word cooccurence statistics.")
+argparser.add_argument("-v", "--vocab", required=True, help="output text file which specifies each word in the vocabulary and which dimension in X's rows and columns it corresponds to. Note the vocabulary excludes infrequent words.")
 argparser.add_argument("-f", "--min_frequency", type=int, default=5, help="minimum frequency for a word to be included in the vocabulary")
 argparser.add_argument("-w", "--window", type=int, default=3, help="distance between two cooccuring words in a sentence")
+argparser.add_argument("-e", "--embeddings", required=True, help="output embeddings file")
 args = argparser.parse_args()
 
 # compute word frequencies
@@ -130,3 +132,30 @@ probs, src_ids, tgt_ids = None, None, None
 
 # save matrices in matlab format
 savemat(args.matrix, dict(X=X, D1=D1, D2=D1))
+
+optimize using matlab. this function writes the output to files: DXDsvd40lam1.mat and timing.mat
+subprocess.call(['matlab -nosplash -nodisplay -r "DXDsvd()"'], shell=True)
+
+# now read the matrix Us from the output file DXDsvd40lam1.mat
+outputs = loadmat('DXDsvd40lam1.mat')
+Us = outputs['Us']
+print 'Us.shape =', Us.shape
+
+# read the vocabulary
+id2word = []
+with io.open(args.vocab, encoding='utf8') as vocab:
+  for line in vocab:
+    word_id, word = line.strip().split(' ')
+    assert int(word_id) == len(id2word)
+    id2word.append(word)
+print 'read {} words'.format(len(id2word))
+
+# write the embeddings file
+print 'embedding of id2word[0]=', id2word[0], 'is Us[0,:] =', Us[0,:].tolist()
+with io.open(args.embeddings, encoding='utf8', mode='w') as embeddings_file:
+  for i in xrange(len(id2word)):
+    embedding = Us[i,:].tolist()
+    embeddings_file.write(id2word[i])
+    for j in xrange(len(embedding)):
+      embeddings_file.write(u' {}'.format(embedding[j]))
+    embeddings_file.write(u'\n')
