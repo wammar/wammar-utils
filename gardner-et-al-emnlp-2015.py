@@ -12,6 +12,7 @@ from scipy.io import savemat
 # parse/validate arguments
 argparser = argparse.ArgumentParser()
 argparser.add_argument("-c", "--corpus", help="input corpus")
+argparser.add_argument("-a", "--alignments", help="alignments probabilities")
 argparser.add_argument("-m", "--matrix", help="output binary .mat file with a sparse, squared matrix X which encodes word cooccurence statistics.")
 argparser.add_argument("-v", "--vocab", help="output text file which specifies each word in the vocabulary and which dimension in X's rows and columns it corresponds to. Note the vocabulary excludes infrequent words.")
 argparser.add_argument("-f", "--min_frequency", type=int, default=5, help="minimum frequency for a word to be included in the vocabulary")
@@ -70,10 +71,6 @@ with io.open(args.corpus, encoding='utf8') as corpus:
     # then add EOS tokens
     for i in xrange(args.window):
       word_ids.append(EOS_ID)
-    filtered_sent = []
-    for i in xrange(len(word_ids)):
-      filtered_sent.append(id2word[word_ids[i]])
-    print ' '.join(filtered_sent)
     # update word_context2freq
     for token_index in xrange(args.window, len(word_ids) - args.window):
       focus_word_id = word_ids[token_index]
@@ -96,9 +93,40 @@ word_context2freq = None
 
 # create the sparse matrix
 X = coo_matrix((freqs, (row_ids, column_ids)), shape=(len(id2word), len(id2word)))
-savemat(args.matrix, dict(X=X))
+# we no longer need the lists
+freqs, row_ids, column_ids = None, None, None
 
 # save the word ids to interpret rows and columns of the matrix
 with io.open(args.vocab, encoding='utf8', mode='w') as vocab:
   for i in xrange(len(id2word)):
     vocab.write(u'{} {}\n'.format(i, id2word[i]))
+
+# read alignment probabilities
+src_ids, tgt_ids, probs = [], [], []
+with io.open(args.alignments, encoding='utf8', mode='r') as alignments:
+  for line in alignments:
+    src, tgt, prob = line.strip().split(' ')
+    prob = float(prob)
+    # skip tiny probabilities
+    if prob < 0.001: continue
+    # skip infrequent words
+    if src not in word2id or tgt not in word2id: continue
+    # update the lists which will be later used to initialize a sparse scipy matrix
+    src_id, tgt_id = word2id[src], word2id[tgt]
+    # forward direction
+    src_ids.append(src_id)
+    tgt_ids.append(tgt_id)
+    probs.append(prob)
+    # backward direction
+    src_ids.append(tgt_id)
+    tgt_ids.append(src_id)
+    probs.append(prob)
+print 'number of nonzero alignment probabilities in the {}x{} translation matrix is {}'.format(len(id2word), len(id2word), len(probs))
+
+# create the sparse matrix that represents translations
+D1 = coo_matrix((probs, (src_ids, tgt_ids)), shape=(len(id2word), len(id2word)))
+# we no longer need the lists
+probs, src_ids, tgt_ids = None, None, None
+
+# save matrices in matlab format
+savemat(args.matrix, dict(X=X, D1=D1, D2=D1))
