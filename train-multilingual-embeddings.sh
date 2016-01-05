@@ -1,7 +1,7 @@
 export wammar_utils="/usr1/home/wammar/wammar-utils/"
 export word2vec="/usr1/home/wammar/incremental-word2vec/"
 export out="/usr1/home/wammar/cluster-embeddings/"
-export embeddings="$out/bg+cs+da+de+el+en+es+fi+fr+hu+it+sv.clusters.m_10000+iter_10+window_5+min_count_5+size_40"
+export embeddings="$out/all_languages.clusters.m_10000+iter_10+window_3+min_count_5+size_40"
 
 # space-delimited list of dictionaries. 
 # the file extension (xx-yy) indicates the language pair is xx-yy. 
@@ -20,13 +20,13 @@ mkdir $out
 #rm -rf $out/*
 
 # create superwords.
-python $wammar_utils/map-words-to-transitive-closures.py -i $bilingual_dictionaries -o $out/word_clusters -m 10000
+python $wammar_utils/map-words-to-transitive-closures.py -i $bilingual_dictionaries -o $out/word_clusters -m 1000
 
 # replace words with superwords in individual monolingual corpora. 
 python $wammar_utils/replace-words-in-monolingual-corpus.py -c $out/word_clusters -l $language_prefixes -i $monolingual_corpora -o $out/corpus.langprefix
 
 # estimate superword embeddings.
-$word2vec/word2vec -train $out/corpus.langprefix -min-count 5 -window 5 -iter 10 -size 40 -type 1 -output $out/cluster_embeddings -threads 16
+$word2vec/word2vec -train $out/corpus.langprefix -min-count 5 -window 3 -iter 10 -size 40 -type 1 -output $out/cluster_embeddings -threads 16
 
 # repeat the same embedding for all words in a superword.
 python $wammar_utils/convert-closure-embeddings-to-word-embeddings.py -i $out/cluster_embeddings -w $out/word_clusters -o $embeddings
