@@ -12,13 +12,11 @@ from scipy.io import savemat, loadmat
 
 # parse/validate arguments
 argparser = argparse.ArgumentParser()
-argparser.add_argument("-c", "--corpus", required=True, help="input corpus")
-argparser.add_argument("-a", "--alignments", required= True, help="alignments probabilities")
-argparser.add_argument("-m", "--matrix", required = True, help="output binary .mat file with a sparse, squared matrix X which encodes word cooccurence statistics.")
-argparser.add_argument("-v", "--vocab", required=True, help="output text file which specifies each word in the vocabulary and which dimension in X's rows and columns it corresponds to. Note the vocabulary excludes infrequent words.")
-argparser.add_argument("-f", "--min_frequency", type=int, default=5, help="minimum frequency for a word to be included in the vocabulary")
-argparser.add_argument("-w", "--window", type=int, default=3, help="distance between two cooccuring words in a sentence")
-argparser.add_argument("-e", "--embeddings", required=True, help="output embeddings file")
+argparser.add_argument("-c", "--corpus", required=True, help="(input) multilingual corpus")
+argparser.add_argument("-a", "--alignments", required= True, help="(input) alignments probabilities")
+argparser.add_argument("-f", "--min_frequency", type=int, default=5, help="(hyperparameter) minimum frequency for a word to be included in the vocabulary")
+argparser.add_argument("-w", "--window", type=int, default=3, help="(hyperparameter) distance between two cooccuring words in a sentence")
+argparser.add_argument("-e", "--embeddings", required=True, help="(output) embeddings file")
 args = argparser.parse_args()
 
 # compute word frequencies
@@ -35,14 +33,13 @@ print 'corpus has', tokens_counter, 'tokens, and', len(word2freq), 'word types'
 
 # filter out low frequency words from the vocabulary, and give each word a unique id
 id2word = []
+word2id = {}
 for word in word2freq.keys():
   if word2freq[word] < args.min_frequency: 
     del word2freq[word]
     continue
-  word2freq[word] = len(id2word)
+  word2id[word] = len(id2word)
   id2word.append(word)
-# the values of the dictionary now are word ids
-word2id = word2freq
 # add sentence boundary words
 SOS, EOS = u'<s>', u'</s>'
 if SOS not in word2id:
@@ -56,8 +53,11 @@ print 'after excluding infrequent words, vocabulary size =', len(id2word)
 
 # compute cooccurence statistics
 word_context2freq = defaultdict(float)
+word_any2freq = defaultdict(float)
+any_context2freq = defaultdict(float)
 updates_counter = 0
 window_offsets = range(-args.window, 0) + range(1, args.window+1)
+
 with io.open(args.corpus, encoding='utf8') as corpus:
   for line in corpus:
     # read a sentence
@@ -79,27 +79,31 @@ with io.open(args.corpus, encoding='utf8') as corpus:
       for context_offset in window_offsets:
         context_word_id = word_ids[token_index + context_offset]
         word_context2freq[(focus_word_id, context_word_id,)] += 1
+        word_any2freq[focus_word_id] += 1
+        any_context2freq[context_word_id] += 1
         updates_counter += 1
 print 'updates_counter =', updates_counter
 print 'len(word_context2freq) =', len(word_context2freq)
 
-# create three lists that summarize the data: row_ids, column_ids, freqs
-row_ids, column_ids, freqs = [], [], []
-for row_col, freq in word_context2freq.iteritems():
+# create three lists that summarize the data: row_ids, column_ids, pmis
+row_ids, column_ids, pmis = [], [], []
+for row_col, joint_freq in word_context2freq.iteritems():
   row_id, column_id = row_col
   row_ids.append(row_id)
   column_ids.append(column_id)
-  freqs.append(freq)
+  row_freq, column_freq = word_any2freq[row_id], any_context2freq[column_id]
+  assert(freq != 0 and row_freq != 0 and column_freq != 0)
+  pmis.append(log(joint_freq * updates_counter/row_freq * column_freq))
 # we no longer need the dictionary
 word_context2freq = None
 
 # create the sparse matrix
-X = coo_matrix((freqs, (row_ids, column_ids)), shape=(len(id2word), len(id2word)))
+X = coo_matrix((pmis, (row_ids, column_ids)), shape=(len(id2word), len(id2word)))
 # we no longer need the lists
-freqs, row_ids, column_ids = None, None, None
+pmis, row_ids, column_ids = None, None, None
 
 # save the word ids to interpret rows and columns of the matrix
-with io.open(args.vocab, encoding='utf8', mode='w') as vocab:
+with io.open('multilingual.vocab', encoding='utf8', mode='w') as vocab:
   for i in xrange(len(id2word)):
     vocab.write(u'{} {}\n'.format(i, id2word[i]))
 
@@ -131,7 +135,7 @@ D1 = coo_matrix((probs, (src_ids, tgt_ids)), shape=(len(id2word), len(id2word)))
 probs, src_ids, tgt_ids = None, None, None
 
 # save matrices in matlab format
-savemat(args.matrix, dict(X=X, D1=D1, D2=D1))
+savemat('multilingual.mat', dict(X=X, D1=D1, D2=D1))
 
 optimize using matlab. this function writes the output to files: DXDsvd40lam1.mat and timing.mat
 subprocess.call(['matlab -nosplash -nodisplay -r "DXDsvd()"'], shell=True)
@@ -143,7 +147,7 @@ print 'Us.shape =', Us.shape
 
 # read the vocabulary
 id2word = []
-with io.open(args.vocab, encoding='utf8') as vocab:
+with io.open('multilingual.vocab', encoding='utf8') as vocab:
   for line in vocab:
     word_id, word = line.strip().split(' ')
     assert int(word_id) == len(id2word)
