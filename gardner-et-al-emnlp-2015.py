@@ -9,6 +9,7 @@ from collections import defaultdict
 import scipy
 from scipy.sparse import coo_matrix
 from scipy.io import savemat, loadmat
+from math import log
 
 # parse/validate arguments
 argparser = argparse.ArgumentParser()
@@ -34,32 +35,46 @@ print 'corpus has', tokens_counter, 'tokens, and', len(word2freq), 'word types'
 # filter out low frequency words from the vocabulary, and give each word a unique id
 id2word = []
 word2id = {}
+id2freq = []
+total_freq = 0
 for word in word2freq.keys():
-  if word2freq[word] < args.min_frequency: 
+  freq = word2freq[word] * 1.0
+  if freq < args.min_frequency: 
     del word2freq[word]
     continue
-  word2id[word] = len(id2word)
+  word_id = len(id2word)
+  word2id[word] = id
   id2word.append(word)
+  freq *= args.window * 2.0
+  id2freq.append(freq)
+  total_freq += freq
+  del word2freq[word]
 # add sentence boundary words
 SOS, EOS = u'<s>', u'</s>'
 if SOS not in word2id:
   word2id[SOS] = len(id2word)
   id2word.append(SOS)
+  id2freq.append(0.0)
 if EOS not in word2id:
   word2id[EOS] = len(id2word)
   id2word.append(EOS)
+  id2freq.append(0.0)
 SOS_ID, EOS_ID = word2id[SOS], word2id[EOS]
 print 'after excluding infrequent words, vocabulary size =', len(id2word)
+assert len(id2freq) == len(id2word)
 
 # compute cooccurence statistics
-word_context2freq = defaultdict(float)
-word_any2freq = defaultdict(float)
-any_context2freq = defaultdict(float)
-updates_counter = 0
+word2context2freq = [defaultdict(float) for i in xrange(len(id2word))]
+any_any2freq = total_freq
 window_offsets = range(-args.window, 0) + range(1, args.window+1)
-
+sys.stdout.write('lines processed:\n')
 with io.open(args.corpus, encoding='utf8') as corpus:
+  lines_counter = 0
   for line in corpus:
+    lines_counter += 1
+    if lines_counter % 100000 == 0: sys.stdout.write('\r', lines_counter)
+    id2freq[SOS_ID] += 2.0 * args.window
+    id2freq[EOS_ID] += 2.0 * args.window
     # read a sentence
     splits = line.strip().split(' ')
     word_ids = []
@@ -78,29 +93,33 @@ with io.open(args.corpus, encoding='utf8') as corpus:
       focus_word_id = word_ids[token_index]
       for context_offset in window_offsets:
         context_word_id = word_ids[token_index + context_offset]
-        word_context2freq[(focus_word_id, context_word_id,)] += 1
-        word_any2freq[focus_word_id] += 1
-        any_context2freq[context_word_id] += 1
-        updates_counter += 1
-print 'updates_counter =', updates_counter
-print 'len(word_context2freq) =', len(word_context2freq)
+        word2context2freq[focus_word_id][context_word_id] += 1
+print 'done counting in word2context2freq!!!'
 
 # create three lists that summarize the data: row_ids, column_ids, pmis
 row_ids, column_ids, pmis = [], [], []
-for row_col, joint_freq in word_context2freq.iteritems():
-  row_id, column_id = row_col
-  row_ids.append(row_id)
-  column_ids.append(column_id)
-  row_freq, column_freq = word_any2freq[row_id], any_context2freq[column_id]
-  assert(freq != 0 and row_freq != 0 and column_freq != 0)
-  pmis.append(log(joint_freq * updates_counter/row_freq * column_freq))
+for row_id in xrange(len(word2context2freq)):
+  row_freq = id2freq[row_id] * 1.0
+  for column_id, joint_freq in word2context2freq[row_id].iteritems():
+    column_freq = id2freq[column_id]
+    assert(joint_freq != 0 and row_freq != 0 and column_freq != 0)
+    pmi = log(joint_freq * any_any2freq / row_freq / column_freq)
+    row_ids.append(row_id)
+    column_ids.append(column_id)
+    pmis.append(pmi)
+print 'done creating the lists row_ids, column_ids, pmis for COO matrix'
 # we no longer need the dictionary
-word_context2freq = None
+word2context2freq = None
 
 # create the sparse matrix
 X = coo_matrix((pmis, (row_ids, column_ids)), shape=(len(id2word), len(id2word)))
 # we no longer need the lists
 pmis, row_ids, column_ids = None, None, None
+
+# save X in matlab format
+savemat('multilingual.X.mat', dict(X=X))
+print 'wrote the matrix X to multilingual.X.mat'
+X = None
 
 # save the word ids to interpret rows and columns of the matrix
 with io.open('multilingual.vocab', encoding='utf8', mode='w') as vocab:
@@ -109,12 +128,13 @@ with io.open('multilingual.vocab', encoding='utf8', mode='w') as vocab:
 
 # read alignment probabilities
 src_ids, tgt_ids, probs = [], [], []
+srcid2total = [0.0 for i in xrange(len(id2word))]
 with io.open(args.alignments, encoding='utf8', mode='r') as alignments:
   for line in alignments:
     src, tgt, prob = line.strip().split(' ')
     prob = float(prob)
     # skip tiny probabilities
-    if prob < 0.001: continue
+    if prob < 0.01: continue
     # skip infrequent words
     if src not in word2id or tgt not in word2id: continue
     # update the lists which will be later used to initialize a sparse scipy matrix
@@ -123,10 +143,11 @@ with io.open(args.alignments, encoding='utf8', mode='r') as alignments:
     src_ids.append(src_id)
     tgt_ids.append(tgt_id)
     probs.append(prob)
-    # backward direction
-    src_ids.append(tgt_id)
-    tgt_ids.append(src_id)
-    probs.append(prob)
+    srcid2total[src_id] += prob
+# normalize
+for i in xrange(len(src_ids)):
+  src_id = src_ids[i]
+  probs[i] /= srcid2total[src_id]
 print 'number of nonzero alignment probabilities in the {}x{} translation matrix is {}'.format(len(id2word), len(id2word), len(probs))
 
 # create the sparse matrix that represents translations
@@ -135,9 +156,10 @@ D1 = coo_matrix((probs, (src_ids, tgt_ids)), shape=(len(id2word), len(id2word)))
 probs, src_ids, tgt_ids = None, None, None
 
 # save matrices in matlab format
-savemat('multilingual.mat', dict(X=X, D1=D1, D2=D1))
+savemat('multilingual.D1.mat', dict(D1=D1))
+print 'wrote the matrix D1 to multilingual.mat'
 
-optimize using matlab. this function writes the output to files: DXDsvd40lam1.mat and timing.mat
+# optimize using matlab. this function writes the output to files: DXDsvd40lam1.mat and timing.mat
 subprocess.call(['matlab -nosplash -nodisplay -r "DXDsvd()"'], shell=True)
 
 # now read the matrix Us from the output file DXDsvd40lam1.mat
