@@ -1,6 +1,35 @@
 function DXDsvd
   lam = 1;
-  load multilingual.mat
+  load 'multilingual.D.mat'
+  D2 = D;
+  D1 = D;
+
+  load 'multilingual.X.bg.mat'
+  total = X;
+  load 'multilingual.X.cs.mat'
+  total = total + X;
+  load 'multilingual.X.da.mat'
+  total = total + X;
+  load 'multilingual.X.de.mat'
+  total = total + X;
+  load 'multilingual.X.el.mat'
+  total = total + X;
+  load 'multilingual.X.en.mat'
+  total = total + X;
+  load 'multilingual.X.es.mat'
+  total = total + X;
+  load 'multilingual.X.fi.mat'
+  total = total + X;
+  load 'multilingual.X.fr.mat'
+  total = total + X;
+  load 'multilingual.X.hu.mat'
+  total = total + X;
+  load 'multilingual.X.it.mat'
+  total = total + X;
+  load 'multilingual.X.sv.mat'
+  total = total + X;
+  X = total;
+
   [ m, n ] = size(X);
   nnzX = nnz(X);
   nnzD1 = nnz(D1);
@@ -19,6 +48,7 @@ function DXDsvd
   t = toc;
   save('DXDsvd40lam1.mat', 'Us', 'Ss', 'Vs', 'lam')
   save('timing.mat', 'nnzX', 'nnzD1', 'nnzD2', 't');
+exit;
 end
 
 function u = DXDu( X, P1, P2, u, m, n )
