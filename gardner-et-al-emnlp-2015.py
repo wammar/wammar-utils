@@ -10,6 +10,7 @@ import scipy
 from scipy.sparse import coo_matrix
 from scipy.io import savemat, loadmat
 from math import log
+import numpy as np
 
 # parse/validate arguments
 argparser = argparse.ArgumentParser()
@@ -178,11 +179,14 @@ savemat('multilingual.D.mat', dict(D=D1))
 print 'wrote the matrix D1 to multilingual.mat'
 
 # optimize using matlab. this function writes the output to files: DXDsvd40lam1.mat and timing.mat
-subprocess.call(['matlab -nosplash -nodisplay -r "DXDsvd()"'], shell=True)
+# also writes Us to DXDsvd40lam1_ascii_Us.mat, loadable with np.loadtxt
+subprocess.call(['octave --eval "DXDsvd()"'], shell=True)
+print "Finished DXDsvd()"
 
 # now read the matrix Us from the output file DXDsvd40lam1.mat
-outputs = loadmat('DXDsvd40lam1.mat')
-Us = outputs['Us']
+#outputs = loadmat('DXDsvd40lam1.mat')
+#Us = outputs['Us']
+Us = np.loadtxt('DXDsvd40lam1_ascii_Us.mat')
 print 'Us.shape =', Us.shape
 
 # read the vocabulary
