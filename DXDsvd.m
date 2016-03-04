@@ -4,27 +4,23 @@ function DXDsvd
   D2 = D;
   D1 = D;
 
-  load 'multilingual.X.bg.mat'
-  total = X;
-  load 'multilingual.X.cs.mat'
-  total = total + X;
-  load 'multilingual.X.da.mat'
-  total = total + X;
   load 'multilingual.X.de.mat'
-  total = total + X;
-  load 'multilingual.X.el.mat'
-  total = total + X;
+  total = X;
+%  load 'multilingual.X.el.mat'
+%  total = total + X;
   load 'multilingual.X.en.mat'
   total = total + X;
   load 'multilingual.X.es.mat'
   total = total + X;
-  load 'multilingual.X.fi.mat'
-  total = total + X;
+%  load 'multilingual.X.fi.mat'
+%  total = total + X;
   load 'multilingual.X.fr.mat'
   total = total + X;
-  load 'multilingual.X.hu.mat'
-  total = total + X;
+%  load 'multilingual.X.hu.mat'
+%  total = total + X;
   load 'multilingual.X.it.mat'
+  total = total + X;
+  load 'multilingual.X.pt.mat'
   total = total + X;
   load 'multilingual.X.sv.mat'
   total = total + X;
@@ -47,6 +43,9 @@ function DXDsvd
   Us = sqrt(2)*Q(n+1:n+m,1:r);
   t = toc;
   save('DXDsvd40lam1.mat', 'Us', 'Ss', 'Vs', 'lam')
+% We actually only use 'Us' and scipy/octave handle structs badly
+% so save 'Us' separately as ascii to be loaded with np.loadtxt
+  save('-ascii', 'DXDsvd40lam1_ascii_Us.mat', 'Us')
   save('timing.mat', 'nnzX', 'nnzD1', 'nnzD2', 't');
 exit;
 end
