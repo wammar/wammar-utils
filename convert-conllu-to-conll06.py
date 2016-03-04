@@ -25,6 +25,9 @@ with io.open(args.input_filename) as input_file:
         if '-' in conll_fields[0]: continue
         # remove language specific extensions of dependency relationships.
         if ':' in conll_fields[7]: conll_fields[7] = conll_fields[7][:conll_fields[7].find(':')]
+        # replace - with _ in POS fields
+        conll_fields[3] = conll_fields[3].replace('-', '_')
+        conll_fields[4] = conll_fields[4].replace('-', '_')
         # remove spaces from the second and third fields
         conll_fields[1] = conll_fields[1].replace(' ', '')
         conll_fields[2] = conll_fields[1].replace(' ', '')
