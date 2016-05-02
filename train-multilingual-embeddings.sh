@@ -1,3 +1,6 @@
+# This is an implementation of the multiCluster method for training multilingual word embeddings. 
+# If you use this method, please cite this paper: http://arxiv.org/abs/1602.01925
+
 export wammar_utils="/usr1/home/wammar/wammar-utils/"
 export word2vec="/usr1/home/wammar/incremental-word2vec/"
 export out="/usr1/home/wammar/cluster-embeddings/"

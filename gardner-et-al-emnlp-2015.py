@@ -13,11 +13,16 @@ from math import log
 import numpy as np
 
 # parse/validate arguments
-argparser = argparse.ArgumentParser()
+argparser = argparse.ArgumentParser(description="This is my implementation of the translation-invariance method for estimating multilingual word embeddings, \n"
+                                    + "proposed by Gardner et al. (EMNLP 2015). \n"
+                                    + "If you use this implementation, please cite both Gardner et al. (2015) and http://arxiv.org/abs/1602.01925 \n"
+                                    + "\n"
+                                    + "Sample invocation: python gardner-et-al-emnlp-2015.py --corpus multilingual-corpus.prefixed.txt --alignments aligned-words.prob --min_frequency 35 --window 3 --embeddings output-file.embeddings")
 argparser.add_argument("-c", "--corpus", required=True, help="(input) multilingual corpus")
 argparser.add_argument("-a", "--alignments", required= True, help="(input) alignments probabilities")
 argparser.add_argument("-f", "--min_frequency", type=int, default=5, help="(hyperparameter) minimum frequency for a word to be included in the vocabulary")
 argparser.add_argument("-w", "--window", type=int, default=3, help="(hyperparameter) distance between two cooccuring words in a sentence")
+argparser.add_argument("-s", "--embedding_size", default=40, help="(hyperparameter) size of each word embedding vector in the output file.")
 argparser.add_argument("-e", "--embeddings", required=True, help="(output) embeddings file")
 args = argparser.parse_args()
 
@@ -84,9 +89,10 @@ def write_x(word2context2freq, lang, any_any2freq, id2freq, id2word):
   # we no longer need the lists
   pmis, row_ids, column_ids = None, None, None
 
-  # save X in matlab format
-  savemat('multilingual.X.{}.mat'.format(lang), dict(X=X))
-  print 'wrote the matrix X to multilingual.X.{}.mat'.format(lang)
+  # save X in matlab format (bad filename, please change this later)
+  input_mat_filename_per_lang = 'multilingual.D.mat.{}'.format(lang)
+  savemat(input_mat_filename_per_lang, dict(X=X))
+  print 'wrote the matrix X of language {} to {}'.format(lang, input_mat_filename_per_lang)
   X = None
 
 # compute cooccurence statistics
@@ -95,6 +101,7 @@ any_any2freq = total_freq
 window_offsets = range(-args.window, 0) + range(1, args.window+1)
 sys.stdout.write('lines processed:\n')
 current_lang = ''
+all_langs = set()
 with io.open(args.corpus, encoding='utf8') as corpus:
   lines_counter = 0
   for line in corpus:
@@ -102,6 +109,7 @@ with io.open(args.corpus, encoding='utf8') as corpus:
     if lines_counter % 100000 == 0: sys.stdout.write('{}\n'.format(lines_counter))
     if line[0:2] != current_lang:
       if current_lang != '': 
+        all_langs.add(current_lang)
         write_x(word2context2freq, current_lang, any_any2freq, id2freq, id2word)
         # reset memory
         word2context2freq = None
@@ -131,13 +139,15 @@ with io.open(args.corpus, encoding='utf8') as corpus:
 
   # write the matrix for the last language
   write_x(word2context2freq, current_lang, any_any2freq, id2freq, id2word)
-print 'done counting in word2context2freq!!!'
+print 'done counting in word2context2freq!!!\n'
+print 'observed languages are: {}'.format(', '.join(all_langs))
 
 # we no longer need the dictionary
 word2context2freq = None
 
 # save the word ids to interpret rows and columns of the matrix
-with io.open('multilingual.vocab', encoding='utf8', mode='w') as vocab:
+vocab_filename = 'multilingual.vocab'
+with io.open(vocab_filename, encoding='utf8', mode='w') as vocab:
   for i in xrange(len(id2word)):
     vocab.write(u'{} {}\n'.format(i, id2word[i]))
 
@@ -175,23 +185,30 @@ D1 = coo_matrix((probs, (src_ids, tgt_ids)), shape=(len(id2word), len(id2word)))
 probs, src_ids, tgt_ids = None, None, None
 
 # save matrices in matlab format
-savemat('multilingual.D.mat', dict(D=D1))
-print 'wrote the matrix D1 to multilingual.mat'
+input_mat_filename = 'multilingual.D.mat'
+savemat(input_mat_filename, dict(D=D1))
+print 'wrote the matrix D1 to ', input_mat_filename
 
-# optimize using matlab. this function writes the output to files: DXDsvd40lam1.mat and timing.mat
-# also writes Us to DXDsvd40lam1_ascii_Us.mat, loadable with np.loadtxt
-subprocess.call(['octave --eval "DXDsvd()"'], shell=True)
-print "Finished DXDsvd()"
+# optimize using matlab. this function writes the output to temporary files which are then read by the following lines in this script.
+print "Calling matlab's function DXDsvd() ..."
+temp_filenames = ['gardner-et-al-emnlp-2015.temp1', 'gardner-et-al-emnlp-2015.temp2']
+output_mat_filename = 'DXDsvd{}lam1_ascii_Us.mat'.format(args.embedding_size)
+command_line = 'matlab --eval "DXDsvd({}, \'{}\', \'{}\', \'{}\', \'{}\', {})"'.format(args.embedding_size, 
+                                                                                       input_mat_filename, 
+                                                                                       temp_filenames[0], 
+                                                                                       temp_filenames[1], 
+                                                                                       output_mat_filename,
+                                                                                       ', '.join(["'{}'".format(lang) for lang in all_langs]))
+subprocess.call([command_line], shell=True)
+print "Done.\n"
 
 # now read the matrix Us from the output file DXDsvd40lam1.mat
-#outputs = loadmat('DXDsvd40lam1.mat')
-#Us = outputs['Us']
-Us = np.loadtxt('DXDsvd40lam1_ascii_Us.mat')
+Us = np.loadtxt(output_mat_filename)
 print 'Us.shape =', Us.shape
 
 # read the vocabulary
 id2word = []
-with io.open('multilingual.vocab', encoding='utf8') as vocab:
+with io.open(vocab_filename, encoding='utf8') as vocab:
   for line in vocab:
     word_id, word = line.strip().split(' ')
     assert int(word_id) == len(id2word)

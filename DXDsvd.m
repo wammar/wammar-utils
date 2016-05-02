@@ -1,29 +1,26 @@
-function DXDsvd
+% adapted from the original implementation of Gardner et al. (EMNLP 2015).
+function DXDsvd(r, input_mat_filename, temp1_filename, temp2_filename, output_mat_filename, varargin)
   lam = 1;
-  load 'multilingual.D.mat'
+
+  % the matrix D is written only once for all languages
+  load input_mat_filename
   D2 = D;
   D1 = D;
 
-  load 'multilingual.X.de.mat'
-  total = X;
-%  load 'multilingual.X.el.mat'
-%  total = total + X;
-  load 'multilingual.X.en.mat'
-  total = total + X;
-  load 'multilingual.X.es.mat'
-  total = total + X;
-%  load 'multilingual.X.fi.mat'
-%  total = total + X;
-  load 'multilingual.X.fr.mat'
-  total = total + X;
-%  load 'multilingual.X.hu.mat'
-%  total = total + X;
-  load 'multilingual.X.it.mat'
-  total = total + X;
-  load 'multilingual.X.pt.mat'
-  total = total + X;
-  load 'multilingual.X.sv.mat'
-  total = total + X;
+  % the matrix X is written separately for each language. The filename suffix for all languages are given as a variable-length argument in this function.
+  nVarargs = length(varargin);
+  fprintf('Number of languages: %d.\n',nVarargs)
+  for k = 1:nVarargs
+    cooccurence_filename = sprintf('%s%s', input_mat_filename, varargin{k})
+    load cooccurence_filename
+    if exist('total','var')
+      total = X;
+    else
+      total = total + X;
+    end
+  end
+
+  % done reading all cooccurence matrices
   X = total;
 
   [ m, n ] = size(X);
@@ -33,7 +30,6 @@ function DXDsvd
   P1 = speye(m) + lam*D1; P2 = speye(n) + lam*D2; 
   clear D1 D2;
 
-  r = 40;
   opts.issym = 1;
   opts.isreal= 1;
   tic
@@ -42,11 +38,12 @@ function DXDsvd
   Vs = sqrt(2)*Q(1:n,1:r);
   Us = sqrt(2)*Q(n+1:n+m,1:r);
   t = toc;
-  save('DXDsvd40lam1.mat', 'Us', 'Ss', 'Vs', 'lam')
-% We actually only use 'Us' and scipy/octave handle structs badly
-% so save 'Us' separately as ascii to be loaded with np.loadtxt
-  save('-ascii', 'DXDsvd40lam1_ascii_Us.mat', 'Us')
-  save('timing.mat', 'nnzX', 'nnzD1', 'nnzD2', 't');
+  save(temp2_filename, 'nnzX', 'nnzD1', 'nnzD2', 't');
+  save(temp1_filename, 'Us', 'Ss', 'Vs', 'lam')
+
+  % We actually only use 'Us' and scipy/octave handle structs badly
+  % so save 'Us' separately as ascii to be loaded with np.loadtxt
+  save('-ascii', output_mat_filename, 'Us')
 exit;
 end
 
