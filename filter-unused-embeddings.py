@@ -18,7 +18,7 @@ args = argparser.parse_args()
 # stream
 with gzip.open(args.input_embeddings, mode='r') if args.input_embeddings.endswith('.gz') else open(args.input_embeddings, mode='r') as input_embeddings, gzip.open(args.text, mode='r') if args.text.endswith('.gz') else open(args.text, mode='r') as text, gzip.open(args.output_embeddings, mode='w') if args.output_embeddings.endswith('.gz') else open(args.output_embeddings, mode='w') as output_embeddings:
 
-  text_vocab = set(text.read().split())
+  text_vocab = set(text.read().decode('utf8').split(' '))
   text_vocab.add("UNK")
   text_vocab.add("<S>")
   text_vocab.add("<\S>")
@@ -31,14 +31,14 @@ with gzip.open(args.input_embeddings, mode='r') if args.input_embeddings.endswit
   input_embeddings_counter, output_embeddings_counter = 0, 0
   for line in input_embeddings:
     try:
-      line = line.decode('utf8')
+      line2 = line.decode('utf8')
     except UnicodeDecodeError:
       print 'WARNING: utf8 decoding error for the following line in the embeddings file:', line, '\nWill skip this one.'
       continue
 
     # filter out unused words
     input_embeddings_counter += 1
-    if line.strip().split(' ')[0] in text_vocab:
+    if line2.strip().split(' ')[0] in text_vocab:
       output_embeddings_counter += 1
       output_embeddings.write(line) 
 
