@@ -14,7 +14,7 @@ args = argparser.parse_args()
 prefix = args.prefix
 regex = re.compile(args.regex)
 
-with io.open(args.input_filename) as input_file, io.open(args.output_filename, mode='w') as output_file: 
+with open(args.input_filename) as input_file, open(args.output_filename, mode='w') as output_file: 
   for line in input_file:
     if regex.search(line):
       if args.remove_prefix:
