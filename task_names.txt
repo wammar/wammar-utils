@@ -1,0 +1,36 @@
+automatic summarization
+coreference resolution
+discourse analysis
+machine translation
+mt
+morphological segmentation
+named entity recognition
+ner
+natural language generation
+natural language understanding
+optical character recognition
+ocr
+part-of-speech tagging
+pos tagging
+dependency parsing
+constituent parsing
+constituency parsing
+shallow parsing
+question answering
+relationship extraction
+sentence boundary disambiguation
+sentiment analysis
+speech recognition
+speech synthesis
+speech segmentation
+word segmentation
+word sense disambiguation
+information retrieval
+information extraction
+native language identification
+stemming
+text simplification
+text-to-speech
+query expansion
+automated essay scoring
+truecasing
