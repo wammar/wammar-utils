@@ -39,10 +39,10 @@ with io.open(args.input_filename) as input_file:
         # detect (some) circular dependencies and break them by assuming the later one is rooted at 0
         child_to_parent_cache[conll_fields[0]] = conll_fields[6]
         if is_cyclic(child_to_parent_cache, conll_fields[0]): 
-          print 'WARNING: sentence #', sents_counter, 'has a cycle. child_to_parent_cache is:\n', child_to_parent_cache
+          print('WARNING: sentence # {} has a cycle. child_to_parent_cache is:\n{}'.format(sents_counter, child_to_parent_cache))
           conll_fields[6] = "0"
           child_to_parent_cache[conll_fields[0]] = conll_fields[6]
-          print 'to resolve this, i updated child_to_parent_cache as follows:\n', child_to_parent_cache, '\n'
+          print('to resolve this, i updated child_to_parent_cache as follows:\n{}\n'.format(child_to_parent_cache))
         # remove language specific extensions of dependency relationships.
         if ':' in conll_fields[7]: conll_fields[7] = conll_fields[7][:conll_fields[7].find(':')]
         # replace - with _ in POS fields
