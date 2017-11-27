@@ -35,7 +35,7 @@ for line in corpusFile:
   elif testSize != 0 and counter % cycleSize < trainSize + devSize + testSize:
     testFile.write(line)
   else:
-    print 'error: something went wrong, but Im not sure what it was.'
+    print('error: something went wrong, but Im not sure what it was.')
     exit(1)   
   counter += 1
 
